@@ -462,11 +462,11 @@ int net_slirp_redir(const char *redir_str)
 /* automatic user mode samba server configuration */
 static void slirp_smb_cleanup(SlirpState *s)
 {
-    char cmd[128];
+    char cmd[129];
     int ret;
 
     if (s->smb_dir[0] != '\0') {
-        snprintf(cmd, sizeof(cmd), "rm -rf %s", s->smb_dir);
+        snprintf(cmd, sizeof(cmd), "rm -rf %.121s", s->smb_dir);
         ret = system(cmd);
         if (ret == -1 || !WIFEXITED(ret)) {
             error_report("'%s' failed.", cmd);
@@ -482,8 +482,8 @@ static int slirp_smb(SlirpState* s, const char *exported_dir,
                      struct in_addr vserver_addr)
 {
     static int instance;
-    char smb_conf[128];
-    char smb_cmdline[128];
+    char smb_conf[138];
+    char smb_cmdline[150];
     struct passwd *passwd;
     FILE *f;
 
@@ -511,7 +511,7 @@ static int slirp_smb(SlirpState* s, const char *exported_dir,
         error_report("could not create samba server dir '%s'", s->smb_dir);
         return -1;
     }
-    snprintf(smb_conf, sizeof(smb_conf), "%s/%s", s->smb_dir, "smb.conf");
+    snprintf(smb_conf, sizeof(smb_conf), "%s/%.138s", s->smb_dir, "smb.conf");
 
     f = fopen(smb_conf, "w");
     if (!f) {
@@ -556,7 +556,7 @@ static int slirp_smb(SlirpState* s, const char *exported_dir,
             );
     fclose(f);
 
-    snprintf(smb_cmdline, sizeof(smb_cmdline), "%s -l %s -s %s",
+    snprintf(smb_cmdline, sizeof(smb_cmdline), "%s -l %.128s -s %s",
              CONFIG_SMBD_COMMAND, s->smb_dir, smb_conf);
 
     if (slirp_add_exec(s->slirp, 0, smb_cmdline, &vserver_addr, 139) < 0 ||
